@@ -1,0 +1,40 @@
+#!/bin/bash
+# Manual session usage updater
+# Run this from within Claude Code: claude-session-update <tokens> <percentage>
+# Or it will estimate from message count
+
+SESSION_FILE="$HOME/.claude/current-session-usage.json"
+SESSION_TOKEN_LIMIT=200000
+
+if [[ $# -eq 2 ]]; then
+  # Manual input
+  tokens=$1
+  percentage=$2
+else
+  # Estimate from current session message count
+  # Count recent messages in history
+  if [[ -f "$HOME/.claude/history.jsonl" ]]; then
+    # Get messages from today
+    today=$(date +%Y-%m-%d)
+    msg_count=$(grep "\"timestamp\":\"$today" "$HOME/.claude/history.jsonl" | wc -l | tr -d ' ')
+
+    # Rough estimate: ~1000 tokens per message (very rough)
+    tokens=$((msg_count * 1000))
+    percentage=$((tokens * 100 / SESSION_TOKEN_LIMIT))
+  else
+    tokens=0
+    percentage=0
+  fi
+fi
+
+# Write to session file
+cat > "$SESSION_FILE" << EOF
+{
+  "tokens": $tokens,
+  "percentage": $percentage,
+  "timestamp": $(date +%s),
+  "updated": "$(date '+%Y-%m-%d %H:%M:%S')"
+}
+EOF
+
+echo "Updated session usage: $tokens tokens ($percentage%)"

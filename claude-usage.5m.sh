@@ -180,6 +180,7 @@ echo "---"
 
 # Actions
 echo "💬 Open Claude | bash=/Users/shikhar/.local/bin/claude terminal=true"
+echo "🔄 Update Session Usage | bash=/Users/shikhar/.local/bin/claude-session-update terminal=false refresh=true"
 echo "📊 View Details | bash=open args=$STATS_FILE"
 echo "⚙️ Settings ($WEEKLY_MESSAGE_LIMIT/wk) | bash=open args=-e,$CONFIG_FILE"
-echo "🔄 Refresh | refresh=true"
+echo "♻️ Refresh Now | refresh=true"

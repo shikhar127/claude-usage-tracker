@@ -59,14 +59,13 @@ chmod +x claude-usage.5m.sh
 2. Click SwiftBar icon → Preferences
 3. Set plugin folder to `~/swiftbar-plugins`
 
-### 5. (Optional) Enable session tracking
+### 5. Install session updater
 
-For real-time session usage tracking:
+For session usage tracking:
 
 ```bash
-mkdir -p ~/.claude/hooks
-curl -o ~/.claude/hooks/after-message.sh https://raw.githubusercontent.com/shikhar127/claude-usage-tracker/main/after-message.sh
-chmod +x ~/.claude/hooks/after-message.sh
+curl -o ~/.local/bin/claude-session-update https://raw.githubusercontent.com/shikhar127/claude-usage-tracker/main/claude-session-update
+chmod +x ~/.local/bin/claude-session-update
 ```
 
 ### 6. Configure your limits
@@ -113,11 +112,32 @@ Adjust `weeklyMessageLimit` based on your Claude plan:
 
 The plugin reads Claude Code's stats cache (`~/.claude/stats-cache.json`) to track your message history and calculates:
 
-- **Session Usage**: Real-time tracking via hooks (optional)
-- **Weekly Usage**: Sum of messages from last 7 days
-- **Daily Activity**: Today's message count
+- **Session Usage**: Updated manually or via button click (Claude doesn't expose token counts to external scripts)
+- **Weekly Usage**: Sum of messages from last 7 days (automatic)
+- **Daily Activity**: Today's message count (automatic)
 
 Weekly limits reset every Monday at 00:00.
+
+### Updating Session Usage
+
+**From the menu bar:**
+Click "🔄 Update Session Usage" to auto-estimate based on recent activity
+
+**Manual update (when in Claude Code):**
+```bash
+# Check /context in Claude to see your token count
+# Then update manually:
+claude-session-update <tokens> <percentage>
+
+# Example: if you have 75,613 tokens (38%)
+claude-session-update 75613 38
+```
+
+**Auto-estimate:**
+```bash
+# Estimates based on message count
+claude-session-update
+```
 
 ## Troubleshooting
 
@@ -131,10 +151,15 @@ Weekly limits reset every Monday at 00:00.
 brew install jq
 ```
 
-**Session usage shows 0:**
-- Session tracking requires the hook to be installed
-- Hook only updates during active Claude Code sessions
-- Check that `~/.claude/hooks/after-message.sh` exists and is executable
+**Session usage shows 0 or "No active session":**
+- Session tracking is manual - click "🔄 Update Session Usage" in the menu
+- Or run `claude-session-update` to estimate from recent activity
+- For accurate counts, check `/context` in Claude and update manually
+
+**Menu bar not updating:**
+- SwiftBar refreshes every 5 minutes automatically
+- Click "♻️ Refresh Now" to force immediate update
+- Or run: `open "swiftbar://refreshallplugins"`
 
 ## Credits
 
