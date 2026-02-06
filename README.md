@@ -49,7 +49,7 @@ mkdir -p ~/swiftbar-plugins
 
 ```bash
 cd ~/swiftbar-plugins
-curl -O https://raw.githubusercontent.com/YOUR_USERNAME/claude-usage-tracker/main/claude-usage.5m.sh
+curl -O https://raw.githubusercontent.com/shikhar127/claude-usage-tracker/main/claude-usage.5m.sh
 chmod +x claude-usage.5m.sh
 ```
 
@@ -65,7 +65,7 @@ For real-time session usage tracking:
 
 ```bash
 mkdir -p ~/.claude/hooks
-curl -o ~/.claude/hooks/after-message.sh https://raw.githubusercontent.com/YOUR_USERNAME/claude-usage-tracker/main/after-message.sh
+curl -o ~/.claude/hooks/after-message.sh https://raw.githubusercontent.com/shikhar127/claude-usage-tracker/main/after-message.sh
 chmod +x ~/.claude/hooks/after-message.sh
 ```
 
