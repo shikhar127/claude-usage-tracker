@@ -1,0 +1,5 @@
+{
+  "weeklyMessageLimit": 5000,
+  "sessionTokenLimit": 200000,
+  "comment": "Adjust weeklyMessageLimit based on your Claude plan. This is used to calculate usage percentage in the menu bar app."
+}
