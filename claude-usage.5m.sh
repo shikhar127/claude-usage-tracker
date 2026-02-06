@@ -22,16 +22,56 @@ if [[ -f "$CONFIG_FILE" ]] && command -v jq &> /dev/null; then
   SESSION_TOKEN_LIMIT=$(jq -r '.sessionTokenLimit // 200000' "$CONFIG_FILE")
 fi
 
-# Get current session usage from active session
+# Get current session usage - auto-estimates every run
 get_session_usage() {
-  if [[ -f "$SESSION_FILE" ]]; then
-    local age=$(( $(date +%s) - $(stat -f %m "$SESSION_FILE" 2>/dev/null || stat -c %Y "$SESSION_FILE" 2>/dev/null) ))
-    if [[ $age -lt 600 ]]; then  # Less than 10 minutes old
-      cat "$SESSION_FILE"
-      return
+  local tokens=0
+  local percentage=0
+
+  # Try to estimate from current session
+  if [[ -f "$HISTORY_FILE" ]]; then
+    # Get timestamp from 6 hours ago
+    local six_hours_ago=$(($(date +%s) * 1000 - 6 * 3600 * 1000))
+
+    # Count recent messages (last 6 hours)
+    local msg_count=$(awk -v cutoff="$six_hours_ago" -F'"timestamp":' '{
+      if (NF > 1) {
+        split($2, a, ",");
+        ts = a[1];
+        if (ts >= cutoff) count++;
+      }
+    } END {print count+0}' "$HISTORY_FILE" 2>/dev/null)
+
+    msg_count=${msg_count:-0}
+
+    # Validate it's a number
+    if ! [[ "$msg_count" =~ ^[0-9]+$ ]]; then
+      msg_count=0
     fi
+
+    # Estimate: ~3000 tokens per message exchange (includes tool use)
+    # This is conservative for sessions with heavy tool usage
+    tokens=$((msg_count * 3000))
+    percentage=$((tokens * 100 / SESSION_TOKEN_LIMIT))
+
+    # Cap at 100%
+    if [[ $percentage -gt 100 ]]; then
+      percentage=100
+      tokens=$SESSION_TOKEN_LIMIT
+    fi
+
+    # Update session file for next read
+    cat > "$SESSION_FILE" << EOF
+{
+  "tokens": $tokens,
+  "percentage": $percentage,
+  "timestamp": $(date +%s),
+  "updated": "$(date '+%Y-%m-%d %H:%M:%S')",
+  "estimated": true
+}
+EOF
   fi
-  echo '{"tokens": 0, "percentage": 0}'
+
+  echo "{\"tokens\": $tokens, \"percentage\": $percentage}"
 }
 
 # Progress bar with gradient effect
